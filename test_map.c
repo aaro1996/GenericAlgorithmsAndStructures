@@ -8,8 +8,8 @@
 
 	
 int min_rand = 0;
-int max_rand = 200;
-int capacity = 1000;
+int max_rand = 20000;
+int capacity = 10000;
 int num_tests = 5000;
 
 void handle_signal(int signal);
@@ -25,33 +25,35 @@ int gen_ran_num(int min, int max) {
 	return (min + (rand() % (max - min)));
 }
 
-int remove_vals(struct rbt* rbt, int start, struct map** array) {
+int remove_vals(struct rbt* rbt, int start, struct map_wrap** values) {
 	struct map* extracted = 0;
 	if(start == 0) {
 		return 0;
 	}
 	int end = gen_ran_num(0, start);
 	for(int i = start-1; i >= end; i--) {
-		if(rbt_extract(rbt, array[i], &extracted)) {
-			assert(extracted->val == array[i]->val);
+		if(values[i]->inserted && rbt_extract(rbt, values[i]->map, &extracted)) {
+			assert(extracted->val == values[i]->map->val);
 			free(extracted);
 		}
-		free(array[i]);
+		free(values[i]->map);
+		free(values[i]);
 	}
 	return end;
 
 }
 
-int fill_vals(struct rbt* rbt, int start, struct map** array){
+int fill_vals(struct rbt* rbt, int start, struct map_wrap** values){
 	int end = gen_ran_num(start, capacity);
 	for(int i = start; i < end; i++) {
-		array[i] = calloc(1, sizeof(struct map));
-		array[i]-> key = gen_ran_num(min_rand, max_rand);
-		array[i]-> val = gen_ran_num(min_rand, max_rand);
+		values[i] = calloc(1, sizeof(struct map_wrap));
+		values[i]->map = calloc(1, sizeof(struct map));
+		values[i]->map->key = gen_ran_num(min_rand, max_rand);
+		values[i]->map->val = gen_ran_num(min_rand, max_rand);
 		struct map* tmp = calloc(1, sizeof(struct map));
-		tmp->key = array[i]->key;
-		tmp->val = array[i]->val;
-		rbt_insert(rbt, tmp);
+		tmp->key = values[i]->map->key;
+		tmp->val = values[i]->map->val;
+		values[i]->inserted = !rbt_insert(rbt, tmp);
 	}
 	return end;
 }
@@ -65,7 +67,7 @@ int random_test() {
 
 	struct map* extracted = 0;
 	srand(time(NULL));
-	struct map** values = calloc(capacity, sizeof(struct map *));
+	struct map_wrap** values = calloc(capacity, sizeof(struct map_wrap *));
 	int i = 0;
 	struct rbt* rbt;
 	rbt_init(&rbt);
@@ -90,10 +92,11 @@ int random_test() {
 		}
 	}
 	for(i--; i >= 0; i--) {
-		if(rbt_extract(rbt, values[i], &extracted)) {
-			assert(extracted->val == values[i]->val);
+		if(values[i]->inserted && rbt_extract(rbt, values[i]->map, &extracted)) {
+			assert(extracted->val == values[i]->map->val);
 			free(extracted);
 		}
+		free(values[i]->map);
 		free(values[i]);
 	}
 	assert(rbt->root == NULL);
