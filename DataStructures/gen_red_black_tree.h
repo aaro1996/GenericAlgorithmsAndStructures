@@ -1,5 +1,5 @@
-#ifndef _TYPENAME_RED_BLACK_TREE_H_
-#define _TYPENAME_RED_BLACK_TREE_H_
+#ifndef _GENERIC_RED_BLACK_TREE_H_
+#define _GENERIC_RED_BLACK_TREE_H_
 
 #ifndef TYPEFILE
 #define TYPEFILE "../generic_type.h"
